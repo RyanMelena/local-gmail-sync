@@ -44,6 +44,12 @@ EOF
 
 echo "[entrypoint] Config written to ${MBSYNCRC}"
 
+# Capture the output into a variable
+VERSION_INFO=$(curl --version)
+
+# Print the captured output
+echo "Curl version: ${VERSION_INFO}"
+
 # ── Pull the embedding model before the first sync ───────────────────────────
 echo "[entrypoint] Ensuring embedding model '${EMBED_MODEL}' is available..."
 curl -sf --retry 12 --retry-delay 10 \
