@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# ── Alpine's Cyrus SASL plugin path ───────────────────────────────────────────
+export SASL_PATH=/usr/lib/sasl2
+
 # ── Validate required env vars ────────────────────────────────────────────────
 : "${GMAIL_ADDRESS:?GMAIL_ADDRESS is required}"
 : "${GMAIL_CLIENT_ID:?GMAIL_CLIENT_ID is required}"
@@ -44,17 +47,11 @@ EOF
 
 echo "[entrypoint] Config written to ${MBSYNCRC}"
 
-# Capture the output into a variable
-VERSION_INFO=$(curl --version)
-
-# Print the captured output
-echo "Curl version: ${VERSION_INFO}"
-
 # ── Pull the embedding model before the first sync ───────────────────────────
-echo "[entrypoint] Ensuring embedding model '${EMBED_MODEL}' is available..."
+echo "[entrypoint] Ensuring embedding model '${EMBED_MODEL:-nomic-embed-text}' is available..."
 curl -sf --retry 12 --retry-delay 10 \
      -X POST "${OLLAMA_URL}/api/pull" \
-     -d "{\"name\":\"${EMBED_MODEL}\",\"stream\":false}" \
+     -d "{\"name\":\"${EMBED_MODEL:-nomic-embed-text}\",\"stream\":false}" \
      -H "Content-Type: application/json" > /dev/null
 echo "[entrypoint] Embedding model ready."
 
