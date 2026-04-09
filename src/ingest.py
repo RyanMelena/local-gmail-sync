@@ -24,7 +24,7 @@ DB_PATH        = MAILDIR / ".ingest_state.sqlite"
 # nomic-embed-text produces 768-dim vectors
 VECTOR_SIZE    = 768
 
-MAX_EMBED_CHARS = 7800  # conservative limit (~2 chars per token average)
+MAX_EMBED_CHARS = 2000  # conservative limit (~2 chars per token average)
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
