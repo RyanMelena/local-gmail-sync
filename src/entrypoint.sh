@@ -17,8 +17,8 @@ cat > "${MBSYNCRC}" << EOF
 IMAPAccount gmail
 Host imap.gmail.com
 User ${GMAIL_ADDRESS}
-Pass ${GMAIL_APP_PASSWORD}
-SSLType IMAPS
+Pass "${GMAIL_APP_PASSWORD}"
+TLSType IMAPS
 CertificateFile /etc/ssl/certs/ca-certificates.crt
 
 IMAPStore gmail-remote
