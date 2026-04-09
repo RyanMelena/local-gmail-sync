@@ -19,7 +19,6 @@ Host imap.gmail.com
 User ${GMAIL_ADDRESS}
 Pass ${GMAIL_APP_PASSWORD}
 SSLType IMAPS
-SSLVersions TLSv1.3 TLSv1.2
 CertificateFile /etc/ssl/certs/ca-certificates.crt
 
 IMAPStore gmail-remote
