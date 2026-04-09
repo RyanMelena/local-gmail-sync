@@ -33,9 +33,10 @@ Channel gmail-channel
 Far :gmail-remote:
 Near :gmail-local:
 Patterns *
-SyncState *
-Expunge None
 Sync Pull
+Create Near
+Expunge None
+SyncState *
 MaxMessages ${INITIAL_BATCH_SIZE:-0}
 EOF
 
