@@ -1,14 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ── Alpine's Cyrus SASL plugin path ───────────────────────────────────────────
-export SASL_PATH=/usr/lib/sasl2
-
 # ── Validate required env vars ────────────────────────────────────────────────
 : "${GMAIL_ADDRESS:?GMAIL_ADDRESS is required}"
-: "${GMAIL_CLIENT_ID:?GMAIL_CLIENT_ID is required}"
-: "${GMAIL_CLIENT_SECRET:?GMAIL_CLIENT_SECRET is required}"
-: "${GMAIL_REFRESH_TOKEN:?GMAIL_REFRESH_TOKEN is required}"
+: "${GMAIL_APP_PASSWORD:?GMAIL_APP_PASSWORD is required}"
 : "${QDRANT_COLLECTION:?QDRANT_COLLECTION is required}"
 : "${QDRANT_URL:?QDRANT_URL is required}"
 : "${OLLAMA_URL:?OLLAMA_URL is required}"
@@ -22,8 +17,7 @@ cat > "${MBSYNCRC}" << EOF
 IMAPAccount gmail
 Host imap.gmail.com
 User ${GMAIL_ADDRESS}
-AuthMechs XOAUTH2
-PassCmd "python3 /app/token_refresh.py"
+Pass ${GMAIL_APP_PASSWORD}
 SSLType IMAPS
 SSLVersions TLSv1.3 TLSv1.2
 CertificateFile /etc/ssl/certs/ca-certificates.crt
@@ -39,7 +33,7 @@ SubFolders Verbatim
 Channel gmail-channel
 Far :gmail-remote:
 Near :gmail-local:
-Patterns INBOX "[Google Mail]/All Mail"
+Patterns *
 Expunge None
 Sync Pull
 MaxMessages ${INITIAL_BATCH_SIZE:-0}
@@ -59,10 +53,8 @@ echo "[entrypoint] Embedding model ready."
 while true; do
     echo "[$(date -u +%FT%TZ)] ── Syncing ${GMAIL_ADDRESS} ──"
 
-    # Sync email: pull-only, never expunge remote
     mbsync -c "${MBSYNCRC}" gmail-channel 2>&1 || true
 
-    # Ingest new mail into Qdrant
     python3 /app/ingest.py
 
     echo "[$(date -u +%FT%TZ)] ── Cycle complete. Sleeping ${SYNC_INTERVAL}s ──"

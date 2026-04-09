@@ -1,16 +1,10 @@
 FROM python:3.12-alpine
 
 RUN apk add --no-cache \
-        --repository=https://dl-cdn.alpinelinux.org/alpine/edge/main \
-        --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community \
         isync \
-        cyrus-sasl \
-        cyrus-sasl-xoauth2 \
-        curl \
-        sqlite
+        curl
 
 RUN pip install --no-cache-dir \
-        google-auth==2.29.0 \
         qdrant-client==1.9.1 \
         requests==2.31.0 \
         beautifulsoup4==4.12.3 \
