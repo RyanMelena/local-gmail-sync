@@ -9,6 +9,7 @@ set -eu
 : "${OLLAMA_URL:?OLLAMA_URL is required}"
 
 SYNC_INTERVAL="${SYNC_INTERVAL_SECONDS:-900}"
+SYNC_PATTERN="${SYNC_PATTERN:-*}"
 MBSYNCRC="/tmp/mbsyncrc-${QDRANT_COLLECTION}"
 MAILDIR="/mail"
 
@@ -32,7 +33,7 @@ SubFolders Verbatim
 Channel gmail-channel
 Far :gmail-remote:
 Near :gmail-local:
-Patterns *
+Patterns ${SYNC_PATTERN}
 Sync Pull
 Create Near
 Expunge None
