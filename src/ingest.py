@@ -72,17 +72,12 @@ def simple_chunk(text: str, chunk_size: int, overlap: int) -> list[str]:
 
 
 def embed(texts: list[str]) -> list[list[float]]:
-    """Batch embed via Ollama. Returns one vector per input string."""
-    vectors = []
-    for text in texts:
-        resp = requests.post(
-            f"{OLLAMA_URL}/api/embeddings",
-            json={"model": EMBED_MODEL, "prompt": text},
-            timeout=60,
-        )
-        resp.raise_for_status()
-        vectors.append(resp.json()["embedding"])
-    return vectors
+    return [
+        requests.post(f"{OLLAMA_URL}/api/embed",
+                      json={"model": EMBED_MODEL, "input": t},
+                      timeout=60).json()["embeddings"][0]
+        for t in texts
+    ]
 
 
 def stable_id(message_id: str, chunk_index: int) -> str:
