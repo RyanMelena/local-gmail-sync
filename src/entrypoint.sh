@@ -38,7 +38,6 @@ Sync Pull
 Create Near
 Expunge None
 SyncState *
-MaxMessages ${INITIAL_BATCH_SIZE:-0}
 EOF
 
 echo "[entrypoint] Config written to ${MBSYNCRC}"
