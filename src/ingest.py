@@ -74,10 +74,17 @@ def simple_chunk(text: str, chunk_size: int, overlap: int) -> list[str]:
 def embed(texts: list[str]) -> list[list[float]]:
     results = []
     for t in texts:
-        resp = requests.post(f"{OLLAMA_URL}/api/embed",
-                             json={"model": EMBED_MODEL, "input": t},
-                             timeout=60)
-        resp.raise_for_status()
+        if not t or not t.strip():
+            raise ValueError("Empty input text passed to embed()")
+        try:
+            resp = requests.post(f"{OLLAMA_URL}/api/embed",
+                                 json={"model": EMBED_MODEL, "input": t},
+                                 timeout=60)
+            resp.raise_for_status()
+        except requests.HTTPError as e:
+            print(f"[ingest] Ollama 400 input sample (first 200 chars): {repr(t[:200])}")
+            print(f"[ingest] Ollama response body: {e.response.text}")
+            raise
         data = resp.json()
         if "embeddings" not in data:
             raise ValueError(f"Unexpected Ollama response: {data}")
