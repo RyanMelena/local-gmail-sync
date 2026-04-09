@@ -24,6 +24,8 @@ DB_PATH        = MAILDIR / ".ingest_state.sqlite"
 # nomic-embed-text produces 768-dim vectors
 VECTOR_SIZE    = 768
 
+MAX_EMBED_CHARS = 7800  # conservative limit (~2 chars per token average)
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def decode_header_value(raw):
@@ -74,6 +76,7 @@ def simple_chunk(text: str, chunk_size: int, overlap: int) -> list[str]:
 def embed(texts: list[str]) -> list[list[float]]:
     results = []
     for t in texts:
+        t = t[:MAX_EMBED_CHARS]
         if not t or not t.strip():
             raise ValueError("Empty input text passed to embed()")
         try:
@@ -200,7 +203,7 @@ def main():
         points = []
 
         try:
-            vectors = embed([header_ctx + c for c in chunks])
+            vectors = embed([header_ctx + c[:MAX_EMBED_CHARS] for c in chunks])
         except Exception as e:
             print(f"[ingest] Embed failed for {message_id}: {e}")
             continue
