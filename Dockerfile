@@ -11,7 +11,7 @@ RUN pip install --no-cache-dir \
         lxml==5.2.1
 
 WORKDIR /app
-COPY src/token_refresh.py src/ingest.py src/entrypoint.sh ./
+COPY src/ingest.py src/entrypoint.sh ./
 RUN chmod +x entrypoint.sh
 
 CMD ["/app/entrypoint.sh"]
