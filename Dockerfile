@@ -1,8 +1,8 @@
 FROM python:3.12-alpine
 
-# Enable community repo (contains cyrus-sasl-xoauth2)
-RUN echo "https://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories \
-    && apk add --no-cache \
+RUN apk add --no-cache \
+        --repository=https://dl-cdn.alpinelinux.org/alpine/edge/main \
+        --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community \
         isync \
         cyrus-sasl \
         cyrus-sasl-xoauth2 \
