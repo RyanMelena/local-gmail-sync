@@ -72,12 +72,17 @@ def simple_chunk(text: str, chunk_size: int, overlap: int) -> list[str]:
 
 
 def embed(texts: list[str]) -> list[list[float]]:
-    return [
-        requests.post(f"{OLLAMA_URL}/api/embed",
-                      json={"model": EMBED_MODEL, "input": t},
-                      timeout=60).json()["embeddings"][0]
-        for t in texts
-    ]
+    results = []
+    for t in texts:
+        resp = requests.post(f"{OLLAMA_URL}/api/embed",
+                             json={"model": EMBED_MODEL, "input": t},
+                             timeout=60)
+        resp.raise_for_status()
+        data = resp.json()
+        if "embeddings" not in data:
+            raise ValueError(f"Unexpected Ollama response: {data}")
+        results.append(data["embeddings"][0])
+    return results
 
 
 def stable_id(message_id: str, chunk_index: int) -> str:
