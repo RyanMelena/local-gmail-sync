@@ -55,7 +55,7 @@ def extract_body(msg: email.message.Message) -> str:
             try:
                 html = part.get_payload(decode=True).decode(
                     part.get_content_charset() or "utf-8", errors="replace")
-                parts.append(BeautifulSoup(html, "lxml").get_text(separator="\n"))
+                parts.append(BeautifulSoup(html, "html.parser").get_text(separator="\n"))
             except Exception:
                 pass
     return "\n".join(parts).strip()
@@ -203,7 +203,7 @@ def main():
         points = []
 
         try:
-            vectors = embed([header_ctx + c[:MAX_EMBED_CHARS] for c in chunks])
+            vectors = embed([(header_ctx + c)[:MAX_EMBED_CHARS] for c in chunks])
         except Exception as e:
             print(f"[ingest] Embed failed for {message_id}: {e}")
             continue
