@@ -14,6 +14,8 @@ MAILDIR="/mail"
 
 # ── Generate mbsync config at runtime from env vars ──────────────────────────
 cat > "${MBSYNCRC}" << EOF
+SyncStateDir ${MAILDIR}/.mbsync
+
 IMAPAccount gmail
 Host imap.gmail.com
 User ${GMAIL_ADDRESS}
