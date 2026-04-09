@@ -1,5 +1,5 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/sh
+set -eu
 
 # ── Validate required env vars ────────────────────────────────────────────────
 : "${GMAIL_ADDRESS:?GMAIL_ADDRESS is required}"
