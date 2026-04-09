@@ -1,0 +1,116 @@
+# ── Reusable anchors ──────────────────────────────────────────────────────────
+
+x-base: &base
+  restart: unless-stopped
+
+x-email-sync-base: &email-sync-base
+  <<: *base
+  build: https://github.com/RyanMelena/local-gmail-sync.git
+  depends_on:
+    - ollama
+    - qdrant
+  environment: &email-sync-env
+    QDRANT_URL: http://qdrant:6333
+    OLLAMA_URL: http://ollama:11434
+    EMBED_MODEL: nomic-embed-text
+    SYNC_INTERVAL_SECONDS: "900"
+    CHUNK_SIZE_TOKENS: "400"
+    CHUNK_OVERLAP_TOKENS: "50"
+    INITIAL_BATCH_SIZE: "500"   # throttle Gmail's IMAP during first sync
+
+# ── Core services ─────────────────────────────────────────────────────────────
+
+services:
+
+  ollama:
+    <<: *base
+    image: ollama/ollama:latest
+    networks:
+      - default
+    environment:
+      OLLAMA_MODELS: /ollama
+      OLLAMA_KEEP_ALIVE: 300s
+    volumes:
+      - ./data/ollama:/ollama
+
+  openwebui:
+    <<: *base
+    image: ghcr.io/open-webui/open-webui:main
+    depends_on:
+      - ollama
+      - qdrant
+    environment:
+      OLLAMA_BASE_URL: http://ollama:11434
+      VECTOR_DB: qdrant
+      QDRANT_URI: http://qdrant:6333
+      QDRANT_API_KEY: ""                   # set if you add Qdrant auth later
+      WEBUI_SECRET_KEY: "change-me-to-a-random-secret"
+      DEFAULT_USER_ROLE: user
+      ENABLE_SIGNUP: "false"               # admin pre-creates all accounts
+      ENABLE_RAG_WEB_SEARCH: "false"
+      RAG_EMBEDDING_ENGINE: ollama
+      RAG_EMBEDDING_MODEL: nomic-embed-text
+      RAG_OLLAMA_BASE_URL: http://ollama:11434
+      WEBUI_NAME: "Home AI"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data/openwebui:/app/backend/data
+
+  qdrant:
+    <<: *base
+    image: qdrant/qdrant:latest
+    environment:
+      QDRANT__STORAGE__STORAGE_PATH: /qdrant/storage
+      QDRANT__STORAGE__SNAPSHOTS_PATH: /qdrant/snapshots
+      QDRANT__SERVICE__GRPC_PORT: "6334"
+      QDRANT__LOG_LEVEL: WARN
+    volumes:
+      - ./data/qdrant:/qdrant
+
+# ── Email sync — one block per Gmail account ──────────────────────────────────
+# Copy and rename these blocks for each user/account combination.
+# The only required changes per-block are:
+#   • service name
+#   • GMAIL_ADDRESS, GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN
+#   • QDRANT_COLLECTION  (convention: {owning_openwebui_username}_{account_label})
+#   • volumes bind-mount path
+
+  email-sync-alice-personal:
+    <<: *email-sync-base
+    environment:
+      <<: *email-sync-env
+      GMAIL_ADDRESS: alice@gmail.com
+      GMAIL_CLIENT_ID: "${ALICE_PERSONAL_CLIENT_ID}"
+      GMAIL_CLIENT_SECRET: "${ALICE_PERSONAL_CLIENT_SECRET}"
+      GMAIL_REFRESH_TOKEN: "${ALICE_PERSONAL_REFRESH_TOKEN}"
+      QDRANT_COLLECTION: alice_personal
+      ACCOUNT_LABEL: "Alice — Personal Gmail"
+    volumes:
+      - ./data/mail/alice/personal:/mail
+
+  email-sync-alice-work:
+    <<: *email-sync-base
+    environment:
+      <<: *email-sync-env
+      GMAIL_ADDRESS: alice@company.com
+      GMAIL_CLIENT_ID: "${ALICE_WORK_CLIENT_ID}"
+      GMAIL_CLIENT_SECRET: "${ALICE_WORK_CLIENT_SECRET}"
+      GMAIL_REFRESH_TOKEN: "${ALICE_WORK_REFRESH_TOKEN}"
+      QDRANT_COLLECTION: alice_work
+      ACCOUNT_LABEL: "Alice — Work Gmail"
+    volumes:
+      - ./data/mail/alice/work:/mail
+
+  email-sync-bob-personal:
+    <<: *email-sync-base
+    environment:
+      <<: *email-sync-env
+      GMAIL_ADDRESS: bob@gmail.com
+      GMAIL_CLIENT_ID: "${BOB_PERSONAL_CLIENT_ID}"
+      GMAIL_CLIENT_SECRET: "${BOB_PERSONAL_CLIENT_SECRET}"
+      GMAIL_REFRESH_TOKEN: "${BOB_PERSONAL_REFRESH_TOKEN}"
+      QDRANT_COLLECTION: bob_personal
+      ACCOUNT_LABEL: "Bob — Personal Gmail"
+    volumes:
+      - ./data/mail/bob/personal:/mail
