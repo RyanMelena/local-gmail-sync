@@ -232,7 +232,11 @@ def main():
             ))
 
         if points:
-            client.upsert(collection_name=COLLECTION, points=points)
+            try:
+                client.upsert(collection_name=COLLECTION, points=points)
+            except Exception as e:
+                print(f"[ingest] WARNING: Upsert failed for {message_id}: {e}")
+                continue
 
         mark_ingested(conn, message_id)
         processed += 1
