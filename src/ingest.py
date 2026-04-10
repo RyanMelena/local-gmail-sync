@@ -234,7 +234,7 @@ def main():
         if points:
             client.upsert(collection_name=COLLECTION, points=points)
 
-        mark_ingested(conn, str(path), message_id)
+        mark_ingested(conn, message_id)
         processed += 1
         if processed % 500 == 0:
             print(f"[ingest] ... {processed}/{len(new_files)}")
