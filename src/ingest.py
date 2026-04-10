@@ -191,7 +191,7 @@ def main():
         folder      = str(path.parent.parent.relative_to(MAILDIR))
 
         if not body:
-            mark_ingested(conn, str(path), message_id)
+            mark_ingested(conn, message_id)
             continue
 
         # Build a rich text blob for embedding: header context + body chunk
