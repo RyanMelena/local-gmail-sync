@@ -115,17 +115,16 @@ def open_db() -> sqlite3.Connection:
     return conn
 
 
-def already_ingested(conn: sqlite3.Connection, file_path: str) -> bool:
-    row = conn.execute(
-        "SELECT 1 FROM ingested WHERE file_path = ?", (file_path,)
-    ).fetchone()
-    return row is not None
+def already_ingested(conn, message_id: str) -> bool:
+    return conn.execute(
+        "SELECT 1 FROM ingested WHERE message_id=?", (message_id,)
+    ).fetchone() is not None
 
 
-def mark_ingested(conn: sqlite3.Connection, file_path: str, message_id: str):
+def mark_ingested(conn, message_id: str):
     conn.execute(
-        "INSERT OR REPLACE INTO ingested (file_path, message_id, ingested_at) VALUES (?,?,?)",
-        (file_path, message_id, int(time.time())),
+        "INSERT OR REPLACE INTO ingested VALUES (?,?)",
+        (message_id, int(time.time()))
     )
     conn.commit()
 
@@ -178,7 +177,11 @@ def main():
             print(f"[ingest] WARNING: Could not parse {path}: {e}")
             continue
 
-        message_id  = (msg.get("Message-ID") or str(path)).strip()
+        message_id = (msg.get("Message-ID") or str(path)).strip()
+
+        if already_ingested(conn, message_id):
+            continue
+
         subject     = decode_header_value(msg.get("Subject") or "(no subject)")
         from_addr   = decode_header_value(msg.get("From") or "")
         to_addr     = decode_header_value(msg.get("To") or "")
