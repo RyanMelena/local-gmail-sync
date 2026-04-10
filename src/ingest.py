@@ -102,15 +102,12 @@ def stable_id(message_id: str, chunk_index: int) -> str:
 
 # ── State DB ──────────────────────────────────────────────────────────────────
 
-def open_db() -> sqlite3.Connection:
+def open_db():
     conn = sqlite3.connect(DB_PATH)
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS ingested (
-            file_path TEXT PRIMARY KEY,
-            message_id TEXT,
-            ingested_at INTEGER
-        )
-    """)
+    conn.execute("""CREATE TABLE IF NOT EXISTS ingested (
+        message_id TEXT PRIMARY KEY,
+        ingested_at INTEGER
+    )""")
     conn.commit()
     return conn
 
