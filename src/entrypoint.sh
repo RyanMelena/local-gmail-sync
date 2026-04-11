@@ -81,7 +81,7 @@ echo "[entrypoint] Embedding model ready."
 
 # ── Start notmuch HTTP server in background ───────────────────────────────────
 echo "[entrypoint] Starting notmuch search server..."
-python3 /app/notmuch_server.py &
+python3 /app/notmuchserver.py &
 
 # ── Main loop ─────────────────────────────────────────────────────────────────
 while true; do
