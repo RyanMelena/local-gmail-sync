@@ -12,6 +12,7 @@ SYNC_INTERVAL="${SYNC_INTERVAL_SECONDS:-900}"
 SYNC_PATTERN="${SYNC_PATTERN:-*}"
 MBSYNCRC="/tmp/mbsyncrc-${QDRANT_COLLECTION}"
 MAILDIR="/mail"
+NOTMUCH_CFG="${MAILDIR}/.notmuch-config"
 
 # ── Generate mbsync config at runtime from env vars ──────────────────────────
 cat > "${MBSYNCRC}" << EOF
@@ -42,6 +43,34 @@ EOF
 
 echo "[entrypoint] Config written to ${MBSYNCRC}"
 
+# ── Generate notmuch config ───────────────────────────────────────────────────
+cat > "${NOTMUCH_CFG}" << EOF
+[database]
+path=${MAILDIR}
+
+[user]
+name=${GMAIL_ADDRESS}
+primary_email=${GMAIL_ADDRESS}
+
+[new]
+tags=unread;inbox;
+ignore=.mbsync;.ingest_state.sqlite;
+
+[search]
+exclude_tags=deleted;spam;
+
+[maildir]
+synchronize_flags=true
+EOF
+
+echo "[entrypoint] notmuch config written to ${NOTMUCH_CFG}"
+
+# ── Initialize notmuch database if needed ─────────────────────────────────────
+if [ ! -d "${MAILDIR}/.notmuch" ]; then
+    echo "[entrypoint] Initializing notmuch database..."
+    notmuch --config "${NOTMUCH_CFG}" new --no-hooks
+fi
+
 # ── Pull the embedding model before the first sync ───────────────────────────
 echo "[entrypoint] Ensuring embedding model '${EMBED_MODEL:-nomic-embed-text}' is available..."
 curl -sf --retry 12 --retry-delay 10 \
@@ -50,11 +79,18 @@ curl -sf --retry 12 --retry-delay 10 \
      -H "Content-Type: application/json" > /dev/null
 echo "[entrypoint] Embedding model ready."
 
+# ── Start notmuch HTTP server in background ───────────────────────────────────
+echo "[entrypoint] Starting notmuch search server..."
+python3 /app/notmuch_server.py &
+
 # ── Main loop ─────────────────────────────────────────────────────────────────
 while true; do
     echo "[$(date -u +%FT%TZ)] ── Syncing ${GMAIL_ADDRESS} ──"
 
     mbsync -c "${MBSYNCRC}" gmail-channel 2>&1 || true
+
+    echo "[$(date -u +%FT%TZ)] ── Updating notmuch index ──"
+    notmuch --config "${NOTMUCH_CFG}" new --no-hooks 2>&1 || true
 
     python3 /app/ingest.py
 
