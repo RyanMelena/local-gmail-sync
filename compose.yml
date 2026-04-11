@@ -80,6 +80,7 @@ services:
 
   email-sync-alice-personal:
     <<: *email-sync-base
+    hostname: email-sync-alice-personal
     environment:
       <<: *email-sync-env
       GMAIL_ADDRESS: alice@gmail.com
@@ -91,6 +92,7 @@ services:
 
   email-sync-alice-work:
     <<: *email-sync-base
+    hostname: email-sync-alice-work
     environment:
       <<: *email-sync-env
       GMAIL_ADDRESS: alice@company.com
@@ -102,6 +104,7 @@ services:
 
   email-sync-bob-personal:
     <<: *email-sync-base
+    hostname: email-sync-bob-personal
     environment:
       <<: *email-sync-env
       GMAIL_ADDRESS: bob@gmail.com
