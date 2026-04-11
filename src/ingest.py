@@ -163,9 +163,10 @@ def main():
         print("[ingest] No new messages to ingest.")
         return
 
-    print(f"[ingest] Ingesting {len(new_files)} new messages into '{COLLECTION}'...")
+    print(f"[ingest] Evaluating {len(new_files)} new files...")
 
     processed = 0
+    skipped = 0
     for path in new_files:
         try:
             with open(path, "rb") as fh:
@@ -177,6 +178,7 @@ def main():
         message_id = (msg.get("Message-ID") or str(path)).strip()
 
         if already_ingested(conn, message_id):
+            skipped += 1
             continue
 
         subject     = decode_header_value(msg.get("Subject") or "(no subject)")
@@ -234,14 +236,12 @@ def main():
             except Exception as e:
                 print(f"[ingest] WARNING: Upsert failed for {message_id}: {e}")
                 continue
-
         mark_ingested(conn, message_id)
         processed += 1
         if processed % 500 == 0:
-            print(f"[ingest] ... {processed}/{len(new_files)}")
-
-    print(f"[ingest] Done. {processed} messages ingested.")
-
+            print(f"[ingest] ... {processed} ingested so far (skipped {skipped} duplicates)")
+        
+    print(f"[ingest] Done. {processed} ingested, {skipped} duplicates skipped.")
 
 if __name__ == "__main__":
     main()
