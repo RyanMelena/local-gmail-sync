@@ -2,6 +2,7 @@ FROM python:3.12-alpine
 
 RUN apk add --no-cache \
         isync \
+        notmuch \
         curl
 
 RUN pip install --no-cache-dir \
@@ -11,7 +12,7 @@ RUN pip install --no-cache-dir \
         lxml==5.2.1
 
 WORKDIR /app
-COPY src/ingest.py src/entrypoint.sh ./
+COPY src/ingest.py src/entrypoint.sh src/notmuchserver.py ./
 RUN chmod +x entrypoint.sh
 
 CMD ["/app/entrypoint.sh"]
